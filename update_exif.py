@@ -9,7 +9,7 @@ from pathlib import Path
 import os
 
 # relative location of the album folder within the export
-ALBUM_PATH: Path = Path("photos_and_videos/album")
+ALBUM_PATH: Path = Path("your_facebook_activity/posts/")
 
 # whether to overwrite preexisting EXIF values
 force_replace: bool = False
@@ -70,18 +70,24 @@ def update_exif_value(
 
 def get_album_files(export_dir: str):
     """ Looks for Facebook export albums in export_dir """
-    return (Path(export_dir) / ALBUM_PATH).glob("*")
+    return (Path(export_dir) / ALBUM_PATH).glob("**/*.html")
 
 
 def process_html_album(filename: str):
     """ Process a single exported album .html file """
     text = Path(filename).read_text(encoding="utf8")
     soup = BeautifulSoup(text, "html.parser")
-    for image_div in soup.select("div.pam"):
-        date_text = image_div.select("div._2lem")[0].text
-        date = datetime.strptime(date_text, "%b %d, %Y, %I:%M %p")
-        filename = image_div.select("div._2let > a")[0].get("href")
-        populate_exif(filename, date)
+    for media in soup.select("._a6_o"):
+        media_div = media.findParent('div').parent
+        try:
+            date_text = media_div.select("div._a72d")[0].text
+        except:
+            continue
+        date = datetime.strptime(date_text, '%b %d, %Y %I:%M:%S %p')
+        filename = media.get("src")
+        if media.name == 'img':
+            populate_exif(filename, date)
+        os.utime(filename, (date.timestamp(), date.timestamp()))
 
 
 def process_json_album(filename: str):
@@ -123,7 +129,7 @@ def detect_export_type() -> ExportType:
     """ Detects if an export is HTML or JSON """
     # album_dir = Path(export_dir) / ALBUM_PATH
 
-    if (ALBUM_PATH / Path("0.html")).exists():
+    if (ALBUM_PATH / Path("your_photos.html")).exists():
         return ExportType.HTML
 
     elif (ALBUM_PATH / Path("0.json")).exists():
