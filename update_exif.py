@@ -2,7 +2,7 @@ from PIL import Image
 import piexif
 from bs4 import BeautifulSoup
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 import json
 from pathlib import Path
@@ -93,7 +93,7 @@ def process_json_album(filename: str):
     parsed_json = json.loads(text)
     for image_data in parsed_json["photos"]:
         filename = image_data["uri"]
-        date = datetime.utcfromtimestamp(int(image_data["creation_timestamp"]))
+        date = datetime.fromtimestamp(int(image_data["creation_timestamp"]), timezone.utc)
         description = None
         if "description" in image_data:
             description = image_data["description"]
