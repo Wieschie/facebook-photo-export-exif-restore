@@ -2,7 +2,7 @@ from PIL import Image
 import piexif
 from bs4 import BeautifulSoup
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 import json
 from pathlib import Path
@@ -53,9 +53,12 @@ def populate_exif(filename: str, date: datetime, description: str = None):
 
 
 def update_exif_value(
-    exif_dict: dict, ifd_name: str, tag_type: int, new_value: str,
+    exif_dict: dict,
+    ifd_name: str,
+    tag_type: int,
+    new_value: str,
 ) -> bool:
-    """ Adds a given value to an exif dictionary.
+    """Adds a given value to an exif dictionary.
 
     Returns:
         True if the value was inserted.  False if the value already existed
@@ -74,7 +77,7 @@ def get_album_files(export_dir: str):
 
 
 def process_html_album(filename: str):
-    """ Process a single exported album .html file """
+    """Process a single exported album .html file"""
     text = Path(filename).read_text(encoding="utf8")
     soup = BeautifulSoup(text, "html.parser")
     for media in soup.select("._a6_o"):
@@ -91,12 +94,12 @@ def process_html_album(filename: str):
 
 
 def process_json_album(filename: str):
-    """ Process a single exported album .json file """
+    """Process a single exported album .json file"""
     text = Path(filename).read_text(encoding="utf8")
     parsed_json = json.loads(text)
     for image_data in parsed_json["photos"]:
         filename = image_data["uri"]
-        date = datetime.utcfromtimestamp(int(image_data["creation_timestamp"]))
+        date = datetime.fromtimestamp(int(image_data["creation_timestamp"]), timezone.utc)
         description = None
         if "description" in image_data:
             description = image_data["description"]
@@ -104,7 +107,7 @@ def process_json_album(filename: str):
 
 
 def process_all_files(export_dir: str):
-    """ Finds all albums and processes every image in each album """
+    """Finds all albums and processes every image in each album"""
 
     if not Path(export_dir).exists():
         raise FileNotFoundError(f"{export_dir} not found!")
@@ -126,7 +129,7 @@ def process_all_files(export_dir: str):
 
 
 def detect_export_type() -> ExportType:
-    """ Detects if an export is HTML or JSON """
+    """Detects if an export is HTML or JSON"""
     # album_dir = Path(export_dir) / ALBUM_PATH
 
     if (ALBUM_PATH / Path("your_photos.html")).exists():
@@ -142,7 +145,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: ./fix-photo-dates.py --force-replace <export_directory>")
+        print("Usage: ./update_exif.py --force-replace <export_directory>")
         exit()
 
     if len(sys.argv) == 3:

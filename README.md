@@ -22,7 +22,6 @@ python ./update_exif.py --force-replace <export_directory>
 ## Setup
 
 ```sh
-python -m venv .venv
-./.venv/Scripts/activate
-pip install -r requirements.txt
+uv sync
+uv run update_exif.py
 ```
