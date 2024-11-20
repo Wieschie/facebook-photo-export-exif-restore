@@ -1,0 +1,16 @@
+[project]
+name = "facebook-photo-export-exif-restore"
+version = "0.1.0"
+description = "Parse facebook photo exports and restore EXIF data."
+readme = "README.md"
+requires-python = ">=3.12.0"
+dependencies = [
+    "pillow",
+    "beautifulsoup4",
+    "piexif",
+    "soupsieve>=2.6",
+]
+[dependency-groups]
+dev = [
+    "ruff>=0.7.4",
+]
